@@ -39,7 +39,7 @@ def handle_pubmed_pmid(pmid: str):
         return gzip.open(archive_name, 'r').read()
     else:
         # File not local, fetch from web
-        response = urllib.request.urlopen(PUBMED_URL % pmid)
+        response = urllib.request.urlopen(PUBMED_URL % pmid, timeout=10)
         with response:
             html_data = response.read()
             with gzip.open(archive_name, 'w') as fh:
@@ -109,9 +109,8 @@ def process_pmid(pmid: str, csv_writer):
         email = get_email(auth_info_str)
         first_name, last_name = get_first_last_name(auth_name)
         csv_writer.writerow([
-            pmid, first_name, last_name, email, auth_info_str
+            pmid, PUBMED_URL % pmid, first_name, last_name, email, auth_info_str
         ])
-    #print(doc_page.prettify())
 
 
 print('Running')
@@ -126,7 +125,7 @@ if __name__ == '__main__':
     with open('results.csv', 'w') as results_fh:
         results_writer = csv.writer(results_fh)
         results_writer.writerow(
-            ['PMID', 'First Name', 'Last Name', 'E-mail', 'Affiliation/Info']
+            ['PMID', 'Pubmed URL', 'First Name', 'Last Name', 'E-mail', 'Affiliation/Info',]
         )
         do_sleep = False
         for arg in pmids:
