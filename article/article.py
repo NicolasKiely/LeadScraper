@@ -1,17 +1,22 @@
 import abc
+import bs4
 import gzip
 import os
+import time
+import typing
 import urllib.request
 
-
-PUBMED_ARCHIVE_NAME = 'archive/pubmed_%s.gzip'
-PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
+from author.author import Author
 
 
 class BaseArticle(object):
     """ Base class for representing article data """
-    def __init__(self, pmid: str):
+    def __init__(self, pmid: str, reference_link=None):
         self._pmid = pmid
+        if reference_link is None:
+            self._reference_link = self.get_url()
+        else:
+            self._reference_link = reference_link
 
     def load(self) -> str:
         """ Loads page data as string by pmid """
@@ -22,8 +27,9 @@ class BaseArticle(object):
 
         else:
             # File not local, fetch from web
+            time.sleep(0.5)
             response = urllib.request.urlopen(
-                self._get_url(),
+                self.get_url(),
                 timeout=self.timeout_limit
             )
             with response:
@@ -32,25 +38,47 @@ class BaseArticle(object):
                     fh.write(html_data)
                 return html_data
 
+    def process(self, html_data: str):
+        """ Process html page, returning list of authors """
+        doc_page = bs4.BeautifulSoup(html_data, 'html.parser')
+        linked_articles = self.get_linked_journals(doc_page)
+        authors = []
+        for linked_article in linked_articles:
+            html_str = linked_article.load()
+            authors.append(linked_article.process(html_str))
+
+        if len(authors) == 0:
+            # No authors found in linked journal
+            authors = self._get_authors(doc_page)
+        return authors
+
     @property
     def timeout_limit(self):
         """ Timeout limit in seconds for downloading page """
         return 10
 
     @abc.abstractmethod
-    def _get_url(self) -> str:
+    def get_journal(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def get_url(self) -> str:
         """ Implement in child. Return url """
         pass
 
     @abc.abstractmethod
     def _get_archive_name(self) -> str:
         """ Implement in child. Return archive name """
+        pass
 
+    @abc.abstractmethod
+    def _get_authors(self, doc_page: bs4.BeautifulSoup) -> typing.List[Author]:
+        """ Implement in child. Return list of authors """
+        pass
 
-class PubmedArticle(BaseArticle):
-    """ Processor for pubmed articles """
-    def _get_url(self) -> str:
-        return PUBMED_URL % self._pmid
-
-    def _get_archive_name(self) -> str:
-        return PUBMED_ARCHIVE_NAME % self._pmid
+    @abc.abstractmethod
+    def get_linked_journals(
+            self, doc_page: bs4.BeautifulSoup
+    ) -> typing.List['BaseArticle']:
+        """ Implement in child. Return linked journal article, if exists """
+        pass
