@@ -32,6 +32,10 @@ class BaseArticle(object):
                 self.get_url(),
                 timeout=self.timeout_limit
             )
+            new_url = response.geturl()
+            if new_url != self.get_url():
+                print('\tRedirect %s -> %s' % (self.get_url(), new_url))
+
             with response:
                 html_data = response.read()
                 with gzip.open(archive_name, 'w') as fh:
@@ -40,6 +44,8 @@ class BaseArticle(object):
 
     def process(self, html_data: str):
         """ Process html page, returning list of authors """
+        if self.get_journal():
+            print('\tJournal: %s' % self.get_journal())
         doc_page = bs4.BeautifulSoup(html_data, 'html.parser')
         linked_articles = self.get_linked_journals(doc_page)
         authors = []

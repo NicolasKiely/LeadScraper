@@ -27,7 +27,7 @@ def get_first_last_name(name_field: str):
         return ' '.join(names[:-1]), names[-1]
 
 
-class PlosOne(BaseArticle):
+class PlosOneArticle(BaseArticle):
     """ Processor for Plos ONE Journal """
     def get_journal(self) -> str:
         return 'Plos One'

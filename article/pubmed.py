@@ -3,7 +3,8 @@ import typing
 import urllib.parse
 
 from article.article import BaseArticle
-from article.plos import PlosOne
+from article.doi import DoiArticle
+from article.plos import PlosOneArticle
 import author.author
 
 
@@ -13,7 +14,8 @@ PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
 
 
 JOURNAL_LOOKUP = {
-    'dx.plos.org': PlosOne
+    'doi.org': DoiArticle,
+    'dx.plos.org': PlosOneArticle
 }
 
 
