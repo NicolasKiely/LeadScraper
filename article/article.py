@@ -45,12 +45,19 @@ class BaseArticle(object):
         authors = []
         for linked_article in linked_articles:
             html_str = linked_article.load()
-            authors.append(linked_article.process(html_str))
+            authors += linked_article.process(html_str)
 
         if len(authors) == 0:
             # No authors found in linked journal
             authors = self._get_authors(doc_page)
         return authors
+
+    @staticmethod
+    def html_text(html_item):
+        return ' '.join([
+            s.replace('\n', ' ') for s in html_item.stripped_strings
+            if s
+        ])
 
     @property
     def timeout_limit(self):

@@ -26,7 +26,7 @@ def first_last(authors: list):
         return authors
 
     else:
-        return authors[0], authors[-1]
+        return [authors[-1]]
 
 
 def process_pmid(pmid: str, csv_results, empty_pmid_fh, no_journal_fh):
@@ -68,8 +68,13 @@ if __name__ == '__main__':
                 'Affiliation/Info',
             ]
         )
-        for arg in pmids:
-            process_pmid(arg, results_writer, empty_pmid_file, no_journal_file)
+        try:
+            for arg in pmids:
+                process_pmid(
+                    arg, results_writer, empty_pmid_file, no_journal_file
+                )
+        except Exception as ex:
+            print('Exception: %s' % ex)
 
         empty_pmid_file.close()
         no_journal_file.close()

@@ -3,6 +3,7 @@ import typing
 import urllib.parse
 
 from article.article import BaseArticle
+from article.plos import PlosOne
 import author.author
 
 
@@ -12,7 +13,7 @@ PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/%s'
 
 
 JOURNAL_LOOKUP = {
-
+    'dx.plos.org': PlosOne
 }
 
 
@@ -98,7 +99,14 @@ class PubmedArticle(BaseArticle):
 
             authors.append(article_author)
 
-        return [a for a in authors if a.email]
+        auth_list = [a for a in authors if a.email]
+        if len(auth_list) == 0:
+            if len(authors) > 0:
+                return [authors[-1]]
+            else:
+                return []
+        else:
+            return auth_list
 
     def get_linked_journals(
             self, doc_page: bs4.BeautifulSoup
